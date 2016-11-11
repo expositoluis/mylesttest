@@ -1,0 +1,19 @@
+{
+  "name": "lestest",
+  "version": "1.0.0",
+  "description": "mylesttest",
+  "main": "app.js",
+  "scripts": {
+    "test": "test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "expositoluis"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "botbuilder": "^3.4.4",
+    "restify": "^4.2.0"
+  }
+}
