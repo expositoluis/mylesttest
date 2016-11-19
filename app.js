@@ -30,10 +30,10 @@ bot.dialog('/', [
     },
     function (session, results) {
         switch (results.response.entity) {
-            case "Articulos":
+            case "Codigos de Articulos":
                 session.replaceDialog("/askarticule");
                 break;
-            case "Procesos":
+            case "Estado de Procesos":
                 session.replaceDialog("/Procesos");
                 break;
             case "Salir":
