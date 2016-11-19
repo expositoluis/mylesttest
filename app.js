@@ -26,7 +26,7 @@ server.post('/api/messages', connector.listen());
 bot.dialog('/', [
     function (session) {
         session.send("Bienvenido al servicio asistente de compras,");
-        builder.Prompts.choice(session, "Que deseas consultar?", ["Articulos", "Procesos","Salir"]);
+        builder.Prompts.choice(session, "Que deseas consultar?", ["Codigos de Articulos", "Estado de Procesos","Salir"]);
     },
     function (session, results) {
         switch (results.response.entity) {
