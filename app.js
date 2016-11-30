@@ -1,17 +1,103 @@
+﻿var restify = require('restify');
 var builder = require('botbuilder');
 
-// Create bot and bind to console
-var connector = new builder.ConsoleConnector().listen();
+//=========================================================
+// Bot Setup
+//=========================================================
+
+// Setup Restify Server
+var server = restify.createServer();
+server.listen(process.env.port || process.env.PORT || 3978, function () {
+   console.log('%s listening to %s', server.name, server.url); 
+});
+  
+// Create chat bot
+var connector = new builder.ChatConnector({
+    appId: process.env.MICROSOFT_APP_ID,
+    appPassword: process.env.MICROSOFT_APP_PASSWORD
+});
 var bot = new builder.UniversalBot(connector);
+server.post('/api/messages', connector.listen());
 
-// Create LUIS recognizer that points at our model and add it as the root '/' dialog for our Cortana Bot.
-var model = 'https://api.projectoxford.ai/luis/v1/application?id=20924d84-746b-4861-8e27-e5b9e66dd3ab&subscription-key=309502969223493d94979d81361cc3ff';
-var recognizer = new builder.LuisRecognizer(model);
-var dialog = new builder.IntentDialog({ recognizers: [recognizer] });
-builder.DialogAction.send('dialog %s', dialog);
-bot.dialog('/', dialog);
+//=========================================================
+// Bots Dialogs
+//=========================================================
 
-dialog.matches('builtin.intent.alarm.set_alarm', builder.DialogAction.send('Creating Alarm'));
-dialog.matches('agendarprocesocompra', builder.DialogAction.send('agendarprocesocompra'));
-dialog.matches('builtin.intent.alarm.delete_alarm', builder.DialogAction.send('Deleting Alarm'));
-dialog.onDefault(builder.DialogAction.send("I'm sorry I didn't understand. I can only create & delete alarms."));
+bot.dialog('/', [
+    function (session) {
+        session.send("Bienvenido al servicio asistente de compras,");
+        builder.Prompts.choice(session, "Que deseas consultar?", ["Codigos de Articulos", "Estado de Procesos","Salir"]);
+    },
+    function (session, results) {
+        switch (results.response.entity) {
+            case "Codigos de Articulos":
+                session.replaceDialog("/askarticule");
+                break;
+            case "Estado de Procesos":
+                session.replaceDialog("/Procesos");
+                break;
+            case "Salir":
+                session.replaceDialog("/fin");
+                break;
+            default:
+                session.replaceDialog("/");
+                break;
+        }
+    }
+]);
+
+bot.dialog('/askarticule', [
+    function (session, args, next) {
+        session.dialogData.profile = args || {};
+        if (!session.dialogData.profile.name) {
+            builder.Prompts.text(session, "'Bienvenido al asistente de codigos de articulos. Por favor indicame que quieres comprar.'");
+        } else {
+            next();
+        }
+    },
+    function (session, results, next) {
+        if (results.response) {
+            session.dialogData.profile.name = results.response;
+            session.send("Antenas de Radio Frecuencia el subgrupo es el 4325");  
+            session.endConversation("Consulta finalizada.");
+            session.replaceDialog("/");
+        }
+    },
+    function (session, results) {
+        if (results.response) {
+            session.dialogData.profile.company = results.response;
+        }
+        session.endDialogWithResult({ response: session.dialogData.profile });
+    }
+]);
+
+bot.dialog('/Procesos', [
+    function (session, args, next) {
+        session.dialogData.profile = args || {};
+        if (!session.dialogData.profile.name) {
+            builder.Prompts.text(session, "'Bienvenido al asistente para conocer el estado de tus procesos. Por favor indicame tu identidad de comprador.'");
+        } else {
+            next();
+        }
+    },
+    function (session, results, next) {
+        if (results.response) {
+            session.dialogData.profile.name = results.response;
+            session.send("La 1134 está en Negociación , la 11567 está pendiente de adjudicar  y la 12222 ya se ha adjudicado");  
+            session.endConversation("Consulta finalizada.");
+            session.replaceDialog("/");
+        }
+    },
+    function (session, results) {
+        if (results.response) {
+            session.dialogData.profile.company = results.response;
+        }
+        session.endDialogWithResult({ response: session.dialogData.profile });
+    }
+]);
+
+bot.dialog('/fin',[
+    function (session, results) {
+        session.endConversation("Ok… Goodbye.");
+    }
+]);
